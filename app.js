@@ -549,3 +549,20 @@ function changePage(direction) {
         updateTable();
     }
 }
+
+async function loadOriginOptions() {
+    const { data, error } = await supabase
+        .from('ab_leads_wp')
+        .select('origem', { count: 'exact' })
+        .neq('origem', null);
+    if (error) {
+        console.error('Erro ao buscar origens:', error);
+        return;
+    }
+    const uniqueOrigins = [...new Set(data.map(item => item.origem))];
+    const origemSelect = document.getElementById('origem-filter');
+    origemSelect.innerHTML = '<option value="">Todas</option>';
+    uniqueOrigins.forEach(origem => {
+        origemSelect.innerHTML += `<option value="${origem}">${origem}</option>`;
+    });
+}
