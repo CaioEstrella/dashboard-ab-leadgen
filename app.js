@@ -1,6 +1,5 @@
-require('dotenv').config();
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+const SUPABASE_URL = 'https://eugvprcvaryunadretbw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV1Z3ZwcmN2YXJ5dW5hZHJldGJ3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NjI4OTYyNywiZXhwIjoyMDYxODY1NjI3fQ.bba2qfmbBDlJ3FvOoPxJiJqzLdqky3YSRUB-0aZ88e4';
 
 // Configurações do Supabase - credenciais já definidas
 
