@@ -175,6 +175,8 @@ async function loadData() {
         applyFilters();
         updateMetrics();
         updateCharts();
+        // popula seletor de origem após tudo pronto
+        loadOriginOptions();    
         
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
@@ -550,19 +552,19 @@ function changePage(direction) {
     }
 }
 
-async function loadOriginOptions() {
-    const { data, error } = await supabase
-        .from('ab_leads_wp')
-        .select('origem', { count: 'exact' })
-        .neq('origem', null);
-    if (error) {
-        console.error('Erro ao buscar origens:', error);
-        return;
-    }
-    const uniqueOrigins = [...new Set(data.map(item => item.origem))];
-    const origemSelect = document.getElementById('origem-filter');
-    origemSelect.innerHTML = '<option value="">Todas</option>';
+function loadOriginOptions() {
+    // Peça origens únicas a partir dos dados já carregados em allLeadsData
+    const uniqueOrigins = [...new Set(allLeadsData
+        .map(item => item.origem)
+        .filter(Boolean))]        // remove null / undefined / string vazia
+        .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+    // Limpa e repõe as opções
+    originFilter.innerHTML = '<option value="">Todas as origens</option>';
     uniqueOrigins.forEach(origem => {
-        origemSelect.innerHTML += `<option value="${origem}">${origem}</option>`;
+        const option = document.createElement('option');
+        option.value = origem;
+        option.textContent = origem;
+        originFilter.appendChild(option);
     });
 }
