@@ -182,12 +182,12 @@ async function loadMetrics() {
         // Total de clicks e scans
         const { data: summaryData, error: summaryError } = await supabaseClient
             .from('afrobasico_leadgen_bitly_summary')
-            .select('clicks, scans');
+            .select('clicks, scans, scans_loja, scans_kasa123');
         
         if (summaryError) throw summaryError;
         
         const totalClicks = summaryData.reduce((sum, row) => sum + (row.clicks || 0), 0);
-        const totalScans = summaryData.reduce((sum, row) => sum + (row.scans || 0), 0);
+        const totalScans = summaryData.reduce((sum, row) => sum + (row.scans_loja || 0) + (row.scans_kasa123 || 0), 0);
         
         // Total de leads
         const { count: totalLeads, error: leadsError } = await supabaseClient
@@ -232,7 +232,7 @@ async function loadChartData() {
         });
         
         const clicksData = data.map(row => row.clicks || 0);
-        const scansData = data.map(row => row.scans || 0);
+        const scansData = data.map(row => (row.scans_loja || 0) + (row.scans_kasa123 || 0));
         
         renderEngagementChart(labels, clicksData, scansData);
         
