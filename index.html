@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard AB - Leadgen</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Animação de fundo -->
+    <div id="geometric-background">
+        <div class="shape shape-circle shape-1"></div>
+        <div class="shape shape-square shape-2"></div>
+        <div class="shape shape-triangle shape-3"></div>
+        <div class="shape shape-circle shape-4"></div>
+        <div class="shape shape-square shape-5"></div>
+        <div class="shape shape-triangle shape-6"></div>
+        <div class="shape shape-circle shape-7"></div>
+        <div class="shape shape-square shape-8"></div>
+        <div class="shape shape-triangle shape-9"></div>
+        <div class="shape shape-circle shape-10"></div>
+    </div>
+
+    <!-- Overlay de Loading Global -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="loading-spinner large"></div>
+            <p>Carregando dashboard...</p>
+        </div>
+    </div>
+
+    <!-- Dashboard Screen -->
+    <div id="dashboard-screen" class="screen active">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="container">
+                <div class="header-content">
+                    <h1>Dashboard AB - Leadgen</h1>
+                    <div class="header-actions">
+                        <div class="datetime">
+                            <span id="current-datetime"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <div class="container">
+                <!-- Filtros -->
+                <section class="filters-section">
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Filtros</h3>
+                            <div class="filters-grid">
+                                <div class="filter-group">
+                                    <label for="date-start" class="form-label">Data Inicial</label>
+                                    <input type="date" id="date-start" class="form-control">
+                                </div>
+                                <div class="filter-group">
+                                    <label for="date-end" class="form-label">Data Final</label>
+                                    <input type="date" id="date-end" class="form-control">
+                                </div>
+                                <div class="filter-group">
+                                    <label for="search-input" class="form-label">Buscar (Nome/Telefone)</label>
+                                    <input type="text" id="search-input" class="form-control" placeholder="Digite o nome ou telefone...">
+                                </div>
+                                <div class="filter-group">
+                                    <label for="origin-filter" class="form-label">Origem</label>
+                                    <select id="origin-filter" class="form-control">
+                                        <option value="">Todas as origens</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <button type="button" id="apply-filters" class="btn btn--primary">Aplicar Filtros</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Métricas -->
+                <section class="metrics-section">
+                    <div class="metrics-grid">
+                        <div class="card metric-card">
+                            <div class="card__body">
+                                <div class="metric">
+                                    <div class="metric-value" id="total-clicks">0</div>
+                                    <div class="metric-label">Total de Clicks</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card metric-card">
+                            <div class="card__body">
+                                <div class="metric">
+                                    <div class="metric-value" id="total-scans">0</div>
+                                    <div class="metric-label">Total de Scans</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card metric-card">
+                            <div class="card__body">
+                                <div class="metric">
+                                    <div class="metric-value" id="total-leads">0</div>
+                                    <div class="metric-label">Total de Leads</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Gráfico -->
+                <section class="chart-section">
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Engajamento ao Longo do Tempo</h3>
+                            <div class="chart-container">
+                                <canvas id="engagement-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Gráfico de Pizza das Origens -->
+                <section class="origin-chart-section">
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Distribuição por Origem</h3>
+                            <div class="chart-container">
+                                <canvas id="origin-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tabela de Leads -->
+                <section class="leads-section">
+                    <div class="card">
+                        <div class="card__body">
+                            <div class="table-header">
+                                <h3>Lista de Leads</h3>
+                                <div id="leads-loading" class="hidden">
+                                    <div class="loading-spinner"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th data-sort="nome">Nome</th>
+                                            <th data-sort="telefone">Telefone</th>
+                                            <th data-sort="origem">Origem</th>
+                                            <th data-sort="data">Data</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="leads-tbody">
+                                        <tr>
+                                            <td colspan="4" class="no-data">Carregando leads...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="pagination-container">
+                                <div class="pagination-info">
+                                    <span id="pagination-info-text">Carregando...</span>
+                                </div>
+                                <div class="pagination-controls">
+                                    <button type="button" id="prev-page" class="btn btn--outline" disabled>Anterior</button>
+                                    <span id="page-info">Página 1 de 1</span>
+                                    <button type="button" id="next-page" class="btn btn--outline" disabled>Próxima</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
