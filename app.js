@@ -17,13 +17,20 @@ let filteredLeadsData = [];
 let currentPage = 1;
 const leadsPerPage = 10;
 let timelineChart = null;
-let originChart = null;
+let proportionChart = null;
 
-// Color Palettes
-const colors = {
-    light: ["#0d1b2a","#1b263b","#415a77","#778da9","#e0e1dd"],
-    dark: ["#000008","#0a0f1a","#1a2635","#2d4a6b","#b8b9b4"],
-    neon: ["#00ffff","#ff00ff","#00ff00","#ffff00","#ff0080"]
+// Modern Color Palettes with good contrast
+const chartColors = {
+    light: {
+        clicks: '#1E40AF',      // Blue dark
+        scans_loja: '#047857',   // Green dark  
+        scans_kasa123: '#D97706' // Orange dark
+    },
+    dark: {
+        clicks: '#3B82F6',      // Blue
+        scans_loja: '#10B981',   // Green
+        scans_kasa123: '#F59E0B' // Amber
+    }
 };
 
 // Sample fallback data for demonstration
@@ -90,7 +97,7 @@ function setTheme(theme) {
     }
     
     // Update charts if they exist
-    if (timelineChart || originChart) {
+    if (timelineChart || proportionChart) {
         setTimeout(() => {
             updateCharts();
         }, 100);
@@ -141,6 +148,11 @@ function formatDate(dateString) {
 
 function formatNumber(number) {
     return new Intl.NumberFormat('pt-BR').format(number);
+}
+
+function getCurrentColors() {
+    const currentTheme = document.documentElement.getAttribute('data-color-scheme');
+    return chartColors[currentTheme] || chartColors.light;
 }
 
 // Data Loading
@@ -249,7 +261,7 @@ function applyFilters() {
             !lead.nome?.toLowerCase().includes(searchTerm) && 
             !lead.telefone?.includes(searchTerm)) return false;
         
-        // Origin filter
+        // Origin filter - using 'origem' column from ab_leads_wp table
         if (origin && lead.origem !== origin) return false;
         
         return true;
@@ -308,7 +320,7 @@ function animateNumber(element, targetValue) {
 // Charts
 function updateCharts() {
     updateTimelineChart();
-    updateOriginChart();
+    updateProportionChart();
 }
 
 function updateTimelineChart() {
@@ -324,6 +336,8 @@ function updateTimelineChart() {
     const scansLojaData = filteredData.map(item => item.scans_loja || 0);
     const scansKasa123Data = filteredData.map(item => item.scans_kasa123 || 0);
     
+    const colors = getCurrentColors();
+    
     timelineChart = new Chart(ctx, {
         type: 'line',
         data: {
@@ -332,47 +346,44 @@ function updateTimelineChart() {
                 {
                     label: 'Clicks',
                     data: clicksData,
-                    borderColor: colors.neon[0], // cyan
-                    backgroundColor: colors.neon[0] + '20',
+                    borderColor: colors.clicks,
+                    backgroundColor: colors.clicks + '20',
                     borderWidth: 3,
                     tension: 0.4,
-                    pointBackgroundColor: colors.neon[0],
-                    pointBorderColor: colors.neon[0],
+                    pointBackgroundColor: colors.clicks,
+                    pointBorderColor: colors.clicks,
                     pointBorderWidth: 2,
-                    pointRadius: 6,
-                    pointHoverRadius: 8,
-                    shadowColor: colors.neon[0],
-                    shadowBlur: 15
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    fill: false
                 },
                 {
                     label: 'Scans Loja',
                     data: scansLojaData,
-                    borderColor: colors.neon[1], // magenta
-                    backgroundColor: colors.neon[1] + '20',
+                    borderColor: colors.scans_loja,
+                    backgroundColor: colors.scans_loja + '20',
                     borderWidth: 3,
                     tension: 0.4,
-                    pointBackgroundColor: colors.neon[1],
-                    pointBorderColor: colors.neon[1],
+                    pointBackgroundColor: colors.scans_loja,
+                    pointBorderColor: colors.scans_loja,
                     pointBorderWidth: 2,
-                    pointRadius: 6,
-                    pointHoverRadius: 8,
-                    shadowColor: colors.neon[1],
-                    shadowBlur: 15
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    fill: false
                 },
                 {
                     label: 'Scans Kasa123',
                     data: scansKasa123Data,
-                    borderColor: colors.neon[2], // green
-                    backgroundColor: colors.neon[2] + '20',
+                    borderColor: colors.scans_kasa123,
+                    backgroundColor: colors.scans_kasa123 + '20',
                     borderWidth: 3,
                     tension: 0.4,
-                    pointBackgroundColor: colors.neon[2],
-                    pointBorderColor: colors.neon[2],
+                    pointBackgroundColor: colors.scans_kasa123,
+                    pointBorderColor: colors.scans_kasa123,
                     pointBorderWidth: 2,
-                    pointRadius: 6,
-                    pointHoverRadius: 8,
-                    shadowColor: colors.neon[2],
-                    shadowBlur: 15
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    fill: false
                 }
             ]
         },
@@ -386,9 +397,16 @@ function updateTimelineChart() {
                         usePointStyle: true,
                         font: {
                             size: 14,
-                            weight: 'bold'
+                            weight: '500'
                         }
                     }
+                },
+                tooltip: {
+                    backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--color-surface'),
+                    titleColor: getComputedStyle(document.documentElement).getPropertyValue('--color-text'),
+                    bodyColor: getComputedStyle(document.documentElement).getPropertyValue('--color-text'),
+                    borderColor: getComputedStyle(document.documentElement).getPropertyValue('--color-border'),
+                    borderWidth: 1
                 }
             },
             scales: {
@@ -397,7 +415,8 @@ function updateTimelineChart() {
                         color: getComputedStyle(document.documentElement).getPropertyValue('--color-text-secondary')
                     },
                     grid: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue('--color-border')
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--color-border'),
+                        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--color-border')
                     }
                 },
                 y: {
@@ -405,45 +424,51 @@ function updateTimelineChart() {
                         color: getComputedStyle(document.documentElement).getPropertyValue('--color-text-secondary')
                     },
                     grid: {
-                        color: getComputedStyle(document.documentElement).getPropertyValue('--color-border')
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--color-border'),
+                        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--color-border')
                     }
                 }
             },
-            elements: {
-                point: {
-                    hoverBorderWidth: 3
-                }
+            interaction: {
+                intersect: false,
+                mode: 'index'
             }
         }
     });
 }
 
-function updateOriginChart() {
-    const ctx = document.getElementById('originChart').getContext('2d');
+function updateProportionChart() {
+    const ctx = document.getElementById('proportionChart').getContext('2d');
     
-    if (originChart) {
-        originChart.destroy();
+    if (proportionChart) {
+        proportionChart.destroy();
     }
     
-    const originCounts = {};
-    filteredLeadsData.forEach(lead => {
-        const origem = lead.origem || 'Outros';
-        originCounts[origem] = (originCounts[origem] || 0) + 1;
-    });
+    const filteredData = filterBitlyDataByDate();
+    const totalClicks = filteredData.reduce((sum, item) => sum + (item.clicks || 0), 0);
+    const totalScansLoja = filteredData.reduce((sum, item) => sum + (item.scans_loja || 0), 0);
+    const totalScansKasa123 = filteredData.reduce((sum, item) => sum + (item.scans_kasa123 || 0), 0);
     
-    const labels = Object.keys(originCounts);
-    const data = Object.values(originCounts);
+    const colors = getCurrentColors();
     
-    originChart = new Chart(ctx, {
+    proportionChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: labels,
+            labels: ['Clicks', 'Scans Loja', 'Scans Kasa123'],
             datasets: [{
-                data: data,
-                backgroundColor: colors.neon.slice(0, labels.length),
-                borderColor: colors.neon.slice(0, labels.length),
-                borderWidth: 3,
-                hoverBorderWidth: 5
+                data: [totalClicks, totalScansLoja, totalScansKasa123],
+                backgroundColor: [
+                    colors.clicks,
+                    colors.scans_loja,
+                    colors.scans_kasa123
+                ],
+                borderColor: [
+                    colors.clicks,
+                    colors.scans_loja,
+                    colors.scans_kasa123
+                ],
+                borderWidth: 2,
+                hoverBorderWidth: 3
             }]
         },
         options: {
@@ -458,17 +483,28 @@ function updateOriginChart() {
                         usePointStyle: true,
                         font: {
                             size: 14,
-                            weight: 'bold'
+                            weight: '500'
+                        }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--color-surface'),
+                    titleColor: getComputedStyle(document.documentElement).getPropertyValue('--color-text'),
+                    bodyColor: getComputedStyle(document.documentElement).getPropertyValue('--color-text'),
+                    borderColor: getComputedStyle(document.documentElement).getPropertyValue('--color-border'),
+                    borderWidth: 1,
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return `${label}: ${value} (${percentage}%)`;
                         }
                     }
                 }
             },
-            elements: {
-                arc: {
-                    borderWidth: 3,
-                    hoverBorderWidth: 5
-                }
-            }
+            cutout: '60%'
         }
     });
 }
